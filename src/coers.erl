@@ -164,7 +164,6 @@ numeric_align(String) ->
 %% @doc try to coerce a term to an integer
 -spec to_int(term()) -> result().
 to_int(Obj) when is_integer(Obj) -> new(true, Obj);
-to_int(Obj) when is_float(Obj)   -> new(true, round(Obj));
 to_int(Obj) when is_bitstring(Obj) -> to_int(binary_to_list(Obj));
 to_int(Obj) when is_list(Obj)    ->
   try list_to_integer(Obj) of
@@ -192,7 +191,6 @@ to_int(Term, Default) ->
 %% @doc try to coerce a term to a float
 -spec to_float(term()) -> result().
 to_float(Obj) when is_float(Obj)     -> new(true, Obj);
-to_float(Obj) when is_integer(Obj)   -> new(true, float(Obj));
 to_float(Obj) when is_bitstring(Obj) -> to_float(binary_to_list(Obj));
 to_float(Obj) when is_list(Obj)      ->
   try list_to_float(Obj) of
