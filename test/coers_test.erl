@@ -121,6 +121,7 @@ to_int_test() ->
   ?assertEqual(F('123'), 123),
   ?assertEqual(F(111.2), 111),
   ?assertEqual(F("+0123"), 123),
+  ?assertEqual(F("-0123"), 123),
   ?assertEqual(F(<<"23">>), 23),
   ?assertEqual(G("foo", 111), 111).
 
@@ -132,6 +133,7 @@ to_float_test() ->
   ?assertEqual(F('123.23'), 123.23),
   ?assertEqual(F(111.2), 111.2),
   ?assertEqual(F("+0123.7654"), 123.7654),
+  ?assertEqual(F("-0123.7654"), 123.7654),
   ?assertEqual(F(<<"23.78">>), 23.78),
   ?assertEqual(G("foo", 111.2), 111.2).
 
@@ -156,11 +158,29 @@ to_bool_test() ->
   ?assertNot(F(0)),
   ?assertNot(F(0.0)).
 
+numeric_align_test() ->
+    ?assertEqual(coers:numeric_align("516"), integer),
+    ?assertEqual(coers:numeric_align("-516"), integer),
+    ?assertEqual(coers:numeric_align("+516"), integer),
+    ?assertEqual(coers:numeric_align("5.16"), float),
+    ?assertEqual(coers:numeric_align("-5.16"), float),
+    ?assertEqual(coers:numeric_align("+5.16"), float),
+    ?assertEqual(coers:numeric_align("5.16e+42"), float),
+    ?assertEqual(coers:numeric_align("5.16e-42"), float),
+    ?assertEqual(coers:numeric_align("-5.16e-42"), float),
+    ?assertEqual(coers:numeric_align("+5.16e-42"), float),
+    ?assertEqual(coers:numeric_align("5/16"), any),
+    ?assertEqual(coers:numeric_align("-5/16"), any),
+    ?assertEqual(coers:numeric_align("+5/16"), any),
+    ?assertEqual(coers:numeric_align("1.2.3"), any),
+    ?assertEqual(coers:numeric_align("1.2.3-rc4"), any).
+
 rational_number_test() ->
-    ?assertEqual(coers:to_float("5/16"), {}},
-    ?assertEqual(coers:to_float("0/16"), {}},
-    ?assertEqual(coers:to_float("5/0"), {}},
-    ?assertEqual(coers:to_int("5/16"), {}},
-    ?assertEqual(coers:to_int("0/16"), {}},
-    ?assertEqual(coers:to_int("5/0"), {}},
-    ?assertEqual(coers:to_string("5/16") {}).
+    ?assertEqual(coers:maybe_string("5/16"), true),
+    ?assertEqual(coers:to_string("5/16"), {result,true,"5/16"}),
+    ?assertEqual(coers:to_float("5/16"), {result,false,0.0}),
+    ?assertEqual(coers:to_float("-0/16"), {result,false,0.0}),
+    ?assertEqual(coers:to_float("+5/0"), {result,false,0.0}),
+    ?assertEqual(coers:to_int("5/16"), {result,false,0}),
+    ?assertEqual(coers:to_int("-0/16"), {result,false,0}),
+    ?assertEqual(coers:to_int("+5/0"), {result,false,0}).

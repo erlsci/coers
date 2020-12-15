@@ -23,6 +23,7 @@
   to_string/2,
   of_string/1,
   of_string/2,
+  numeric_align/1,
   to_int/1,
   to_int/2,
   to_float/1,
@@ -154,10 +155,11 @@ of_string(Str, Default) ->
 %% @doc numeric alignement of a string (float of int)
 -spec numeric_align(string()) -> atom().
 numeric_align(String) ->
-  {ok, Regexp} = re:compile("^\\d+(\\.|\\,)?"),
+  {ok, Regexp} = re:compile("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$"),
     case re:run(String, Regexp) of
-      {match, [_A]} -> integer;
-      {match, [_A,_B]} -> float;
+      {match, [_, _]} -> integer;
+      {match, [_, _, _]} -> float;
+      {match, [_, _, _, _]} -> float;
     _ -> any
   end.
 
