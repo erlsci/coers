@@ -1,5 +1,9 @@
 # coers
 
+[![Build Status][gh-actions-badge]][gh-actions]
+[![Erlang Versions][erlang-badge]][versions]
+[![Tag][github-tag-badge]][github-tag]
+
 [![Project Logo][logo]][logo-large]
 
 *A small library for coercion to primitive Erlang types*
@@ -83,3 +87,9 @@ Copyright © 2020, Duncan McGreggor <oubiwann@gmail.com>.
 
 [logo]: priv/images/logo-v1.png
 [logo-large]: priv/images/logo-v1.svg
+[gh-actions-badge]: https://github.com/erlsci/coers/workflows/ci%2Fcd/badge.svg
+[gh-actions]: https://github.com/erlsci/coers/actions
+[erlang-badge]: https://img.shields.io/badge/erlang-19%20to%2023-blue.svg
+[versions]: https://github.com/erlsci/coers/blob/master/.github/workflows/cicd.yml
+[github-tag]: https://github.com/erlsci/coers/tags
+[github-tag-badge]: https://img.shields.io/github/tag/erlsci/coers.svg
