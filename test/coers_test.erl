@@ -119,21 +119,21 @@ to_int_test() ->
   ?assertEqual(F("1000"), 1000),
   ?assertEqual(F(444), 444),
   ?assertEqual(F('123'), 123),
-  ?assertEqual(F(111.2), 111),
+  ?assertEqual(F(111.2), 0),
   ?assertEqual(F("+0123"), 123),
-  ?assertEqual(F("-0123"), 123),
+  ?assertEqual(F("-0123"), -123),
   ?assertEqual(F(<<"23">>), 23),
   ?assertEqual(G("foo", 111), 111).
 
 to_float_test() ->
   F = fun(X) -> coers:value(coers:to_float(X)) end,
   G = fun(X, Y) -> coers:value(coers:to_float(X, Y)) end,
-  ?assertEqual(F("1000"), 1000.0),
-  ?assertEqual(F(444), 444.0),
+  ?assertEqual(F("1000"), 0.0),
+  ?assertEqual(F(444), 0.0),
   ?assertEqual(F('123.23'), 123.23),
   ?assertEqual(F(111.2), 111.2),
   ?assertEqual(F("+0123.7654"), 123.7654),
-  ?assertEqual(F("-0123.7654"), 123.7654),
+  ?assertEqual(F("-0123.7654"), -123.7654),
   ?assertEqual(F(<<"23.78">>), 23.78),
   ?assertEqual(G("foo", 111.2), 111.2).
 
