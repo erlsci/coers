@@ -1,34 +1,23 @@
-![](https://travis-ci.org/derniercri/coers.svg?branch=master)
+# coers
 
-coers
-=====
+[![Project Logo][logo]][logo-large]
+
+*A small library for coercion to primitive Erlang types*
+
+## About
 
 Coers is a very small library to provide small coercion
 on primitive types in Erlang. This library was built
 essentially for internal tools at derniercri.io
 
-Build & test
------
+## Build & Test
+
     $ # Compile the library
     $ rebar3 compile
     $ # run the tests using eUnit
     $ rebar3 eunit
 
-
-Usage
---------
-
-You can run an erlang shell with `coers` completely loaded : `rebar3 shell` :
-
-```shell 
-===> Verifying dependencies...
-===> Compiling coers
-Erlang/OTP 19 [erts-8.1] [source] [64-bit] [smp:4:4] [async-threads:0] [hipe] [kernel-poll:false] [dtrace]
-
-Eshell V8.1  (abort with ^G)
-```
-
-### Basics
+## Usage
 
 Each coercion is wrapped into a special record: 
 
@@ -62,9 +51,35 @@ For example :
 [10,0]
 ```
 
-Documentation
---------
+Example usgage in LFE:
 
-This page exposes the feature list : <http://xvw.github.io/coers/coers.html>
+``` lisp
+(defun ->lfe (arg)
+  (case arg
+   (#"#t" 'true)
+   (#"#f" 'false)
+   (#"NIL" 'nil)
+   (_ (cond ((?= `#(result true ,val) (coers:to_int arg))
+             val)
+            ((?= `#(result true ,val) (coers:to_float arg))
+             val)
+            ((?= `#(result true ,val) (coers:to_bool arg))
+             val)
+            ((?= `#(result true ,val) (coers:to_string arg))
+             val)
+            ('true arg)))))
+```
+
+## License
+
+MIT
+
+Copyright © 2016, Xavier van De Woestyne
+
+Copyright © 2020, Duncan McGreggor <oubiwann@gmail.com>.
 
 
+[//]: ---Named-Links---
+
+[logo]: priv/images/logo-v1.png
+[logo-large]: priv/images/logo-v1.svg
