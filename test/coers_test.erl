@@ -155,3 +155,12 @@ to_bool_test() ->
   ?assertNot(F(<<"false">>)),
   ?assertNot(F(0)),
   ?assertNot(F(0.0)).
+
+rational_number_test() ->
+    ?assertEqual(coers:to_float("5/16"), {}},
+    ?assertEqual(coers:to_float("0/16"), {}},
+    ?assertEqual(coers:to_float("5/0"), {}},
+    ?assertEqual(coers:to_int("5/16"), {}},
+    ?assertEqual(coers:to_int("0/16"), {}},
+    ?assertEqual(coers:to_int("5/0"), {}},
+    ?assertEqual(coers:to_string("5/16") {}).
