@@ -105,7 +105,7 @@ maybe_string(List) when is_list(List) ->
 maybe_string(_) -> false.
 
 %% @doc try to coerce term into string
--spec to_string(any()) -> string().
+-spec to_string((binary() | [any()])) -> #result{succeeded::boolean()}.
 to_string(Term) when is_bitstring(Term) ->
   List = binary_to_list(Term),
   to_string(List);
@@ -234,7 +234,7 @@ to_atom(Term, Default) ->
   unless(to_atom(Term), Default).
 
 %% @doc try to coerce a term to a boolean
--spec to_bool(term()) -> boolean().
+-spec to_bool(term()) -> #result{succeeded::boolean()}.
 to_bool(Obj) when is_atom(Obj) ->
   new((Obj == true) or (Obj == false), not (Obj == false));
 to_bool(Obj) when is_list(Obj) ->
