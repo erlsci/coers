@@ -1,6 +1,5 @@
 %% @author X. Van de Woestyne <xaviervdw@gmail.com>
 %% @copyright 2016 X. Van de Woestyne
-%% @version 0.1.0
 %% @doc coers provide small function for value coercion.
 
 -module(coers).
@@ -31,8 +30,13 @@
   to_atom/1,
   to_atom/2,
   to_bool/1,
-  to_bool/2
+  to_bool/2,
+  to_rational/1,
+  to_rational/2
 ]).
+
+-define(RATIO_REGEX, "^(?<SIGN>[+-])?(?<NUM>\\d+)/(?<DEN>\\d+)$").
+-define(NUM_REGEX, "^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$").
 
 -export_type([result/0]).
 
@@ -155,7 +159,7 @@ of_string(Str, Default) ->
 %% @doc numeric alignement of a string (float of int)
 -spec numeric_align(string()) -> atom().
 numeric_align(String) ->
-  {ok, RatioRegex} = re:compile("^[+-]?([0-9])+/([0-9])+$"),
+  {ok, RatioRegex} = re:compile(?RATIO_REGEX),
   case re:run(String, RatioRegex) of
     {match, _} -> rational;
     _ -> numeric_alignt_int_float(String)
@@ -163,7 +167,7 @@ numeric_align(String) ->
 
 -spec numeric_alignt_int_float(string()) -> atom().
 numeric_alignt_int_float(String) ->
-  {ok, Regexp} = re:compile("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$"),
+  {ok, Regexp} = re:compile(?NUM_REGEX),
   case re:run(String, Regexp) of
     {match, [_, _]} -> integer;
     {match, [_, _, _]} -> float;
@@ -264,3 +268,20 @@ to_bool(_)   -> new(false, true).
 -spec to_bool(term(), term()) -> result().
 to_bool(Term, Default) ->
   unless(to_bool(Term), Default).
+
+-spec to_rational(term()) -> result().
+to_rational(Obj) when is_list(Obj) ->
+    case re:run(Obj, ?RATIO_REGEX, [{capture, ['SIGN', 'NUM', 'DEN'], list}]) of
+        {match, [Sign, Num, Denom]} -> 
+            new(true, rational:new(value(to_int(Sign ++ Num)), value(to_int(Denom))));
+        _ ->
+            new(false, rational:new(0, 1))
+    end;
+to_rational(Obj) when is_bitstring(Obj) ->
+    to_rational(binary_to_list(Obj));
+to_rational({Num, Denom}=Obj) when is_tuple(Obj) ->
+    new(true, rational:new(value(to_int(Num)), value(to_int(Denom)))).
+
+-spec to_rational(term(), term()) -> result().
+to_rational(Obj, Default) ->
+    unless(to_rational(Obj), value(to_rational(Default))).
