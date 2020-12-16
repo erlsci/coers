@@ -169,9 +169,9 @@ numeric_align_test() ->
     ?assertEqual(coers:numeric_align("5.16e-42"), float),
     ?assertEqual(coers:numeric_align("-5.16e-42"), float),
     ?assertEqual(coers:numeric_align("+5.16e-42"), float),
-    ?assertEqual(coers:numeric_align("5/16"), any),
-    ?assertEqual(coers:numeric_align("-5/16"), any),
-    ?assertEqual(coers:numeric_align("+5/16"), any),
+    ?assertEqual(coers:numeric_align("5/16"), rational),
+    ?assertEqual(coers:numeric_align("-5/16"), rational),
+    ?assertEqual(coers:numeric_align("+5/16"), rational),
     ?assertEqual(coers:numeric_align("1.2.3"), any),
     ?assertEqual(coers:numeric_align("1.2.3-rc4"), any).
 
