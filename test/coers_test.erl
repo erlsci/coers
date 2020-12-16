@@ -184,3 +184,14 @@ rational_number_test() ->
     ?assertEqual(coers:to_int("5/16"), {result,false,0}),
     ?assertEqual(coers:to_int("-0/16"), {result,false,0}),
     ?assertEqual(coers:to_int("+5/0"), {result,false,0}).
+
+to_rational_test() ->
+    ?assertEqual({result,true,{fraction,5,16}}, coers:to_rational("5/16")),
+    ?assertEqual({result,false,{fraction,0,1}}, coers:to_rational("0.3125")),
+    ?assertEqual({result,false,{fraction,5,16}}, coers:to_rational("0.3125", "5/16")),
+    ?assertEqual({result,true,{fraction,-5,16}}, coers:to_rational("-5/16")),
+    ?assertEqual({result,true,{fraction,5,16}}, coers:to_rational(<<"5/16">>)),
+    ?assertEqual({result,true,{fraction,-5,16}}, coers:to_rational(<<"-5/16">>)),
+    ?assertEqual({result,true,{fraction,5,16}}, coers:to_rational({5,16})),
+    ?assertEqual({result,true,{fraction,-5,16}}, coers:to_rational({-5,16})),
+    ?assertEqual({result,true,{fraction,5,16}}, coers:to_rational({"5","16"})).
