@@ -44,7 +44,7 @@ You can use these 3 combinators to have information about coercion status :
 
 For example : 
 
-```shell
+```erlang
 1> X = coers:to_int("10").
 {result,true,10}
 2> Y = coers:to_int("foo").
@@ -53,6 +53,17 @@ For example :
 [true,false,false,true]
 4> [coers:value(X), coers:value(Y)].
 [10,0]
+```
+
+Note that, via the `rational` Erlang library, fractions are supported:
+
+``` erlang
+5> coers:to_rational("1/42").
+{result,true,{fraction,1,42}}
+6> coers:to_rational(<<"1/42">>).
+{result,true,{fraction,1,42}}
+7> coers:to_rational({1, 42}).
+{result,true,{fraction,1,42}}
 ```
 
 Example usgage in LFE:
