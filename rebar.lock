@@ -1,1 +1,4 @@
-[].
+[{<<"rational">>,
+  {git,"https://github.com/shortishly/erlang-rational",
+       {ref,"404694fd6397ba407891919fb62df07bf4acdaab"}},
+  0}].

@@ -155,11 +155,19 @@ of_string(Str, Default) ->
 %% @doc numeric alignement of a string (float of int)
 -spec numeric_align(string()) -> atom().
 numeric_align(String) ->
+  {ok, RatioRegex} = re:compile("^[+-]?([0-9])+/([0-9])+$"),
+  case re:run(String, RatioRegex) of
+    {match, _} -> rational;
+    _ -> numeric_alignt_int_float(String)
+  end.
+
+-spec numeric_alignt_int_float(string()) -> atom().
+numeric_alignt_int_float(String) ->
   {ok, Regexp} = re:compile("^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$"),
-    case re:run(String, Regexp) of
-      {match, [_, _]} -> integer;
-      {match, [_, _, _]} -> float;
-      {match, [_, _, _, _]} -> float;
+  case re:run(String, Regexp) of
+    {match, [_, _]} -> integer;
+    {match, [_, _, _]} -> float;
+    {match, [_, _, _, _]} -> float;
     _ -> any
   end.
 
