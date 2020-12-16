@@ -16,10 +16,13 @@ essentially for internal tools at derniercri.io
 
 ## Build & Test
 
-    $ # Compile the library
-    $ rebar3 compile
-    $ # run the tests using eUnit
-    $ rebar3 eunit
+``` shell
+$ rebar3 compile
+$ rebar3 check
+```
+
+The later includes not only unit tests, but also other checks and coverage
+assessment.
 
 ## Usage
 
