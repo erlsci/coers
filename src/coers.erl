@@ -3,8 +3,7 @@
 -compile({no_auto_import, [error/1]}).
 
 %% API of Coers
--export([
-         value/1,
+-export([value/1,
          error/1,
          has_error/1,
          is_ascii_char/1,
@@ -259,8 +258,3 @@ to_rational(Term, Default) ->
 
 format_error_msg(Err, Msg, FmtArgs) ->
     results:new_error({Err, lists:flatten(io_lib:format(Msg, FmtArgs))}).
-
-maybe_wrap_default(Result) when is_record(Result, result) ->
-    Result;
-maybe_wrap_default(Val) ->
-    results:new(Val).
