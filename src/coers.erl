@@ -114,7 +114,7 @@ of_string(Term, Default) when is_record(Default, result) ->
 of_string(Term, Default) ->
     results:attempt(of_string(Term), of_string(Default)).
 
-%% @doc numeric alignement of a string (float of int)
+%% @doc numeric alignement of a string (float or int)
 -spec numeric_align(string()) -> atom().
 numeric_align(String) ->
     {ok, RatioRegex} = re:compile(?RATIO_REGEX),
