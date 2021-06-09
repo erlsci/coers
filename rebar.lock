@@ -1,4 +1,10 @@
+{"1.1.0",
 [{<<"rational">>,
   {git,"https://github.com/shortishly/erlang-rational",
        {ref,"404694fd6397ba407891919fb62df07bf4acdaab"}},
-  0}].
+  0},
+ {<<"results">>,{pkg,<<"results">>,<<"0.1.0">>},0}]}.
+[
+{pkg_hash,[
+ {<<"results">>, <<"7E80B8CCCCE3D67AB73048D1C7D228EC68C61EFD38A69077954FC55555E70C0C">>}]}
+].
