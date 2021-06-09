@@ -212,14 +212,14 @@ to_bool(Term, Default) ->
 to_rational(Obj) when is_list(Obj) ->
     case re:run(Obj, ?RATIO_REGEX, [{capture, ['SIGN', 'NUM', 'DEN'], list}]) of
         {match, [Sign, Num, Denom]} -> 
-            results:new(rational:new(results:value(to_int(Sign ++ Num)), results:value(to_int(Denom))));
+            results:new(rationals:new(results:value(to_int(Sign ++ Num)), results:value(to_int(Denom))));
         _ ->
-            results:new(rational:new(0, 1))
+            results:new(rationals:new(0, 1))
     end;
 to_rational(Obj) when is_bitstring(Obj) ->
     to_rational(binary_to_list(Obj));
 to_rational({Num, Denom}=Obj) when is_tuple(Obj) ->
-    results:new(rational:new(results:value(to_int(Num)), results:value(to_int(Denom)))).
+    results:new(rationals:new(results:value(to_int(Num)), results:value(to_int(Denom)))).
 
 -spec to_rational(term(), term()) -> result().
 to_rational(Obj, Default) ->
