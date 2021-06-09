@@ -1,6 +1,6 @@
 {application, coers,
  [{description, "A small library for coercion to primitive Erlang types"},
-  {vsn, "0.4.0-dev"},
+  {vsn, "0.4.0"},
   {registered, []},
   {applications,
    [kernel,
