@@ -1,11 +1,12 @@
-%% @author X. Van de Woestyne <xaviervdw@gmail.com>
-%% @copyright 2016 X. Van de Woestyne
-%% @doc coers provide small function for value coercion.
-
 -module(coers).
+
+-compile({no_auto_import, [error/1]}).
 
 %% API of Coers
 -export([
+  value/1,
+  error/1,
+  has_error/1,
   is_ascii_char/1,
   maybe_string/1,
   to_string/1,
@@ -29,6 +30,18 @@
 
 -define(RATIO_REGEX, "^(?<SIGN>[+-])?(?<NUM>\\d+)/(?<DEN>\\d+)$").
 -define(NUM_REGEX, "^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$").
+
+-spec value(result()) -> term().
+value(Result) ->
+    results:value(Result).
+
+-spec error(result()) -> term().
+error(Result) ->
+    results:error(Result).
+
+-spec has_error(result()) -> boolean().
+has_error(Result) ->
+    results:has_error(Result).
 
 %% @doc determine if an integer is a potential Ascii Char
 -spec is_ascii_char(integer()) -> boolean().
@@ -61,8 +74,10 @@ to_string(Term) ->
 %% @doc Replace value if coercion failed
 %%      the suceeded flag is preserved
 -spec to_string(term(), term()) -> result().
+to_string(Term, Default) when is_record(Default, result) ->
+    results:attempt(to_string(Term), Default);
 to_string(Term, Default) ->
-  results:attempt(to_string(Term), Default).
+    results:attempt(to_string(Term), to_string(Default)).
 
 %% @doc an ugly and magic coercion from string to term()
 -spec of_string(string()) -> result().
@@ -81,19 +96,24 @@ of_string(String) ->
           {ok, Exprs} ->
             {value, Val, []} = erl_eval:exprs(Exprs, []),
             results:new(Val);
-          {error, {_, _, _}} ->
+          {error, {_, erl_parse, _}} ->
             %% TODO extract the error message and add to new_error
-            results:new_error({error, "tbd"})
+            format_error_msg(erl_parse, "Could not convert string ~p", [String]);
+          {error, {Err, A, B}} ->
+            %% TODO extract the error message and add to new_error
+            format_error_msg(Err, "Could not convert string ~p, ~p, ~p", [String, A, B])
         end;
-      {error, {_, _, _}, _} ->
+      {error, {Err, A, B}, _} ->
         %% TODO extract the error message and add to new_error
-        results:new_error({error, "tbd"})
+        format_error_msg(Err, "Could not convert string ~p, ~p, ~p", [String, A, B])
   end.
 
 %% @doc try coercion or define a default value the suceeded flag is preserved
 -spec of_string(string(), term()) -> result().
-of_string(Str, Default) ->
-  results:attempt(of_string(Str), Default).
+of_string(Term, Default) when is_record(Default, result) ->
+    results:attempt(of_string(Term), Default);
+of_string(Term, Default) ->
+    results:attempt(of_string(Term), of_string(Default)).
 
 %% @doc numeric alignement of a string (float of int)
 -spec numeric_align(string()) -> atom().
@@ -121,25 +141,28 @@ to_int(Obj) when is_bitstring(Obj) -> to_int(binary_to_list(Obj));
 to_int(Obj) when is_list(Obj)    ->
   try list_to_integer(Obj) of
   Val    -> results:new(Val)
-  catch _:_ ->
+  catch error:Err ->
     case numeric_align(Obj) of
       float -> to_int(list_to_float(Obj));
-      _     -> results:new(0)
+      Type     -> format_error_msg(Err, "Could not convert ~p (type ~p) to int", [Obj, Type])
     end
   end;
 to_int(Obj) when is_atom(Obj)     ->
   try Soft = atom_to_list(Obj), to_int(Soft) of
   Result     -> Result
-  catch  _:_ ->
-    results:new(0)
+  catch  error:Err ->
+    format_error_msg(Err, "Could not convert ~p to int", [Obj])
   end;
-to_int(_) -> results:new(0).
+to_int(Obj) -> format_error_msg(error, "Could not convert ~p to int", [Obj]).
 
 %% @doc try coercion or define a default value
 %%      the suceeded flag is preserved
 -spec to_int(term(), term()) -> result().
+to_int(Term, Default) when is_record(Default, result) ->
+    results:attempt(to_int(Term), Default);
 to_int(Term, Default) ->
-  results:attempt(to_int(Term), Default).
+    results:attempt(to_int(Term), to_int(Default)).
+
 
 %% @doc try to coerce a term to a float
 -spec to_float(term()) -> result().
@@ -148,24 +171,27 @@ to_float(Obj) when is_bitstring(Obj) -> to_float(binary_to_list(Obj));
 to_float(Obj) when is_list(Obj)      ->
   try list_to_float(Obj) of
   Val     -> results:new(Val)
-  catch  _:_ ->
+  catch error:Err ->
     case numeric_align(Obj) of
       integer -> to_float(list_to_integer(Obj));
-      _       -> results:new(0.0)
+      Type     -> format_error_msg(Err, "Could not convert ~p (type ~p) to float", [Obj, Type])
     end
   end;
-to_float(Obj) when is_atom(Obj)      ->
-  try Pred = atom_to_list(Obj), to_float(Pred) of
+to_float(Obj) when is_atom(Obj) ->
+  try Obj2 = atom_to_list(Obj), to_float(Obj2) of
   Result -> Result
-  catch _:_ ->
-    results:new(0.0)
+  catch error:Err ->
+    format_error_msg(Err, "Could not convert ~p to flost", [Obj])
   end;
-to_float(_) -> results:new(0.0).
+to_float(Obj) ->
+    format_error_msg(error, "Could not convert ~p to flost", [Obj]).
 
 %% @doc try coercion or define a default value the suceeded flag is preserved
 -spec to_float(term(), term()) -> result().
+to_float(Term, Default) when is_record(Default, result) ->
+    results:attempt(to_float(Term), Default);
 to_float(Term, Default) ->
-  results:attempt(to_float(Term), Default).
+    results:attempt(to_float(Term), to_float(Default)).
 
 %% @doc try to coerce a term to an atom
 -spec to_atom(term()) -> result().
@@ -173,7 +199,7 @@ to_atom(Obj) when is_atom(Obj)  -> results:new(Obj);
 to_atom(Obj) when is_list(Obj)  ->
   try list_to_atom(Obj) of
   Val     -> results:new(Val)
-  catch _:_ -> results:new(false)
+  catch Err:_ -> results:new_error(Err)
   end;
 to_atom(Obj) ->
   Pred = to_string(Obj),
@@ -181,8 +207,10 @@ to_atom(Obj) ->
 
 %% @doc try coercion or define a default value the suceeded flag is preserved
 -spec to_atom(term(), term()) -> result().
+to_atom(Term, Default) when is_record(Default, result) ->
+    results:attempt(to_atom(Term), Default);
 to_atom(Term, Default) ->
-  results:attempt(to_atom(Term), Default).
+    results:attempt(to_atom(Term), to_atom(Default)).
 
 %% @doc try to coerce a term to a boolean
 -spec to_bool(term()) -> result().
@@ -213,8 +241,8 @@ to_rational(Obj) when is_list(Obj) ->
     case re:run(Obj, ?RATIO_REGEX, [{capture, ['SIGN', 'NUM', 'DEN'], list}]) of
         {match, [Sign, Num, Denom]} -> 
             results:new(rationals:new(results:value(to_int(Sign ++ Num)), results:value(to_int(Denom))));
-        _ ->
-            results:new(rationals:new(0, 1))
+        Err ->
+            format_error_msg(Err, "Could not convert ~p to ratio", [Obj])
     end;
 to_rational(Obj) when is_bitstring(Obj) ->
     to_rational(binary_to_list(Obj));
@@ -222,5 +250,17 @@ to_rational({Num, Denom}=Obj) when is_tuple(Obj) ->
     results:new(rationals:new(results:value(to_int(Num)), results:value(to_int(Denom)))).
 
 -spec to_rational(term(), term()) -> result().
-to_rational(Obj, Default) ->
-    results:attempt(to_rational(Obj), results:value(to_rational(Default))).
+to_rational(Term, Default) when is_record(Default, result) ->
+    results:attempt(to_rational(Term), Default);
+to_rational(Term, Default) ->
+    results:attempt(to_rational(Term), to_rational(Default)).
+
+%% Private functions
+
+format_error_msg(Err, Msg, FmtArgs) ->
+    results:new_error({Err, lists:flatten(io_lib:format(Msg, FmtArgs))}).
+
+maybe_wrap_default(Result) when is_record(Result, result) ->
+    Result;
+maybe_wrap_default(Val) ->
+    results:new(Val).

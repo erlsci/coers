@@ -10,9 +10,8 @@
 
 ## About
 
-Coers is a very small library to provide small coercion
-on primitive types in Erlang. This library was built
-essentially for internal tools at derniercri.io
+Coers is a very small library to provide small coercion on primitive types in Erlang.
+This library was built essentially for internal tools at derniercri.io
 
 ## Build & Test
 
@@ -26,47 +25,54 @@ assessment.
 
 ## Usage
 
-Each coercion is wrapped into a special record: 
+Each coercion is wrapped into a [special record](https://github.com/erlsci/results/blob/main/include/results.hrl): 
 
 ```erlang
 -record(result, {
-  succeeded :: boolean(),
-  value     :: term()
+  value :: term(),
+  error :: term(),
 }).
 ```
 
-If a coercion fail, the `value` member is assigned with a default value and the `succeed`
-member is `false`. If the coersion succeed, the `value` member becomes the coerced data and the 
-`succeed` member becomes `true`.
+If a coercion fail, the `value` field is undefined and the `error` field is populated with
+an appropriate error. If the coersion succeed, the `value` field becomes the coerced data and the 
+`error` field is undefined.
 
-You can use these 3 combinators to have information about coercion status : 
+You can use these functions from the coers API to examine the coercion status:
 
--  `-spec succeed(result()) -> boolean().`
--  `-spec fail(result()) -> boolean().`
--  `-spec value(result()) -> term().`
+- `coers:value(Result)`
+- `coers:error(Result)`
+- `coers:has_error(Result)`
 
 For example : 
 
 ```erlang
-1> X = coers:to_int("10").
-{result,true,10}
-2> Y = coers:to_int("foo").
-{result,false,0}
-3> [coers:succeed(X), coers:succeed(Y), coers:fail(X), coers:fail(Y)].
-[true,false,false,true]
-4> [coers:value(X), coers:value(Y)].
-[10,0]
+1> R1 = coers:to_int("10").
+{result,10,undefined}
+2> R2 = coers:to_int("foo").
+{result,undefined,{badarg,"Could not convert \"foo\" (type any) to int"}}
 ```
 
-Note that, via the `rational` Erlang library, fractions are supported:
+Additional convenience functions are available via the [results library](https://github.com/erlsci/results):
 
 ``` erlang
-5> coers:to_rational("1/42").
-{result,true,{fraction,1,42}}
-6> coers:to_rational(<<"1/42">>).
-{result,true,{fraction,1,42}}
-7> coers:to_rational({1, 42}).
-{result,true,{fraction,1,42}}
+3> results:has_values([R1, R2]).
+[true,false]
+4> results:has_errors([R1, R2]).
+[false,true]
+5> results:values([R1, R2]).
+[10,undefined]
+```
+
+Note that fractions are supported (via the [rationals](https://github.com/erlsci/rationals) Erlang library):
+
+``` erlang
+6> coers:to_rational("1/42").
+{result,{fraction,1,42},undefined}
+7> coers:to_rational(<<"1/42">>).
+{result,{fraction,1,42},undefined}
+8> coers:to_rational({1, 42}).
+{result,{fraction,1,42},undefined}
 ```
 
 Example usgage in LFE:
@@ -92,9 +98,9 @@ Example usgage in LFE:
 
 MIT
 
-Copyright © 2016, Xavier van De Woestyne
+Copyright © 2020-2021, Erlang-Aided Enrichment Center
 
-Copyright © 2020, Duncan McGreggor <oubiwann@gmail.com>.
+Copyright © 2016, Xavier van De Woestyne
 
 
 [//]: ---Named-Links---
