@@ -11,7 +11,9 @@
 ## About
 
 Coers is a very small library to provide small coercion on primitive types in Erlang.
-This library was built essentially for internal tools at derniercri.io
+While originally created for use with internal tools at [derniercri.io](https://derniercri.io/),
+it is useful for Erlang/BEAM projects that consume arbitrary string data from external systems
+that don't support Erlang terms, JSON, or industry standard data serialisation.
 
 ## Build & Test
 
@@ -75,7 +77,7 @@ Note that fractions are supported (via the [rationals](https://github.com/erlsci
 {result,{fraction,1,42},undefined}
 ```
 
-Example usgage in LFE:
+Example usgage in LFE when reading data from the Extempore music system:
 
 ``` lisp
 (defun ->lfe (arg)
