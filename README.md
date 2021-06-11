@@ -80,20 +80,20 @@ Note that fractions are supported (via the [rationals](https://github.com/erlsci
 Example usgage in LFE when reading data from the Extempore music system:
 
 ``` lisp
-(defun ->lfe (arg)
-  (case arg
+(defun ->lfe (bitstr)
+  (case bitstr
    (#"#t" 'true)
    (#"#f" 'false)
    (#"NIL" 'nil)
-   (_ (cond ((?= `#(result true ,val) (coers:to_int arg))
+   (_ (cond ((?= `#(result ,val undefined) (coers:->int bitstr))
              val)
-            ((?= `#(result true ,val) (coers:to_float arg))
+            ((?= `#(result ,val undefined) (coers:->float bitstr))
              val)
-            ((?= `#(result true ,val) (coers:to_bool arg))
+            ((?= `#(result ,val undefined) (coers:->bool bitstr))
              val)
-            ((?= `#(result true ,val) (coers:to_string arg))
+            ((?= `#(result ,val undefined) (coers:->string bitstr))
              val)
-            ('true arg)))))
+            ('true bitstr)))))
 ```
 
 ## License

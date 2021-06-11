@@ -6,13 +6,11 @@
 -export([value/1,
          error/1,
          has_error/1,
-         is_ascii_char/1,
-         maybe_string/1,
          to_string/1,
          to_string/2,
-         of_string/1,
-         of_string/2,
-         numeric_align/1,
+         to_term/1,
+         to_term/2,
+         get_type/1,
          to_int/1,
          to_int/2,
          to_float/1,
@@ -25,6 +23,9 @@
          to_rational/2,
          %% LFE-friendly aliases
          'error?'/1,
+         'get-type'/1,
+         '->term'/1,
+         '->term'/2,
          '->string'/1,
          '->string'/2,
          '->int'/1,
@@ -55,21 +56,6 @@ error(Result) ->
 -spec has_error(result()) -> boolean().
 has_error(Result) ->
     results:has_error(Result).
-
-%% @doc determine if an integer is a potential Ascii Char
--spec is_ascii_char(integer()) -> boolean().
-is_ascii_char(X) when is_integer(X) ->
-    (X >= 32) and (X < 127);
-is_ascii_char([H]) ->
-    is_ascii_char(H);
-is_ascii_char(_) ->
-    false.
-
-%% @doc check if a list is maybe a string
--spec maybe_string(list()) -> boolean().
-maybe_string(List) when is_list(List) ->
-    lists:all(fun is_ascii_char/1, List);
-maybe_string(_) -> false.
 
 %% @doc try to coerce term into string
 -spec to_string((binary() | [any()])) -> result().
@@ -102,8 +88,8 @@ to_string(Term, Default) ->
     results:attempt(to_string(Term), to_string(Default)).
 
 %% @doc an ugly and magic coercion from string to term()
--spec of_string(string()) -> result().
-of_string(String) ->
+-spec to_term(string()) -> result().
+to_term(String) ->
     {ok, Regexp} = re:compile("^.+(\\,|\\;|\\.)$"),
     S =
         case re:run(String, Regexp) of
@@ -131,23 +117,23 @@ of_string(String) ->
     end.
 
 %% @doc try coercion or define a default value the suceeded flag is preserved
--spec of_string(string(), term()) -> result().
-of_string(Term, Default) when is_record(Default, result) ->
-    results:attempt(of_string(Term), Default);
-of_string(Term, Default) ->
-    results:attempt(of_string(Term), of_string(Default)).
+-spec to_term(string(), term()) -> result().
+to_term(Term, Default) when is_record(Default, result) ->
+    results:attempt(to_term(Term), Default);
+to_term(Term, Default) ->
+    results:attempt(to_term(Term), to_term(Default)).
 
 %% @doc numeric alignement of a string (float or int)
--spec numeric_align(string()) -> atom().
-numeric_align(String) ->
+-spec get_type(string()) -> atom().
+get_type(String) ->
     {ok, RatioRegex} = re:compile(?RATIO_REGEX),
     case re:run(String, RatioRegex) of
         {match, _} -> rational;
-        _ -> numeric_alignt_int_float(String)
+        _ -> get_type_int_float(String)
     end.
 
--spec numeric_alignt_int_float(string()) -> atom().
-numeric_alignt_int_float(String) ->
+-spec get_type_int_float(string()) -> atom().
+get_type_int_float(String) ->
     {ok, Regexp} = re:compile(?NUM_REGEX),
     case re:run(String, Regexp) of
         {match, [_, _]} -> integer;
@@ -164,7 +150,7 @@ to_int(Obj) when is_list(Obj)    ->
     try list_to_integer(Obj) of
         Val    -> results:new(Val)
     catch error:Err ->
-            case numeric_align(Obj) of
+            case get_type(Obj) of
                 float -> to_int(list_to_float(Obj));
                 Type     -> format_error_msg(Err, "Could not convert ~p (type ~p) to int", [Obj, Type])
             end
@@ -194,7 +180,7 @@ to_float(Obj) when is_list(Obj)      ->
     try list_to_float(Obj) of
         Val     -> results:new(Val)
     catch error:Err ->
-            case numeric_align(Obj) of
+            case get_type(Obj) of
                 integer -> to_float(list_to_integer(Obj));
                 Type     -> format_error_msg(Err, "Could not convert ~p (type ~p) to float", [Obj, Type])
             end
@@ -203,10 +189,10 @@ to_float(Obj) when is_atom(Obj) ->
     try Obj2 = atom_to_list(Obj), to_float(Obj2) of
         Result -> Result
     catch error:Err ->
-            format_error_msg(Err, "Could not convert ~p to flost", [Obj])
+            format_error_msg(Err, "Could not convert ~p to float", [Obj])
     end;
 to_float(Obj) ->
-    format_error_msg(error, "Could not convert ~p to flost", [Obj]).
+    format_error_msg(error, "Could not convert ~p to float", [Obj]).
 
 %% @doc try coercion or define a default value the suceeded flag is preserved
 -spec to_float(term(), term()) -> result().
@@ -286,6 +272,15 @@ format_error_msg(Err, Msg, FmtArgs) ->
 'error?'(R) ->
     has_error(R).
 
+'get-type'(S) ->
+    get_type(S).
+
+'->term'(R) ->
+    to_term(R).
+
+'->term'(R, D) ->
+    to_term(R, D).
+
 '->string'(R) ->
     to_string(R).
 
@@ -321,3 +316,42 @@ format_error_msg(Err, Msg, FmtArgs) ->
 
 '->rational'(R, D) ->
     to_rational(R, D).
+
+%% Private functions
+
+%% @doc determine if an integer is a potential Ascii Char
+-spec is_ascii_char(integer()) -> boolean().
+is_ascii_char(X) when is_integer(X) ->
+    (X >= 32) and (X < 127);
+is_ascii_char([H]) ->
+    is_ascii_char(H);
+is_ascii_char(_) ->
+    false.
+
+%% @doc check if a list is maybe a string
+-spec maybe_string(list()) -> boolean().
+maybe_string(List) when is_list(List) ->
+    lists:all(fun is_ascii_char/1, List);
+maybe_string(_) -> false.
+
+-include_lib("eunit/include/eunit.hrl").
+
+is_ascii_char_test() ->
+    Flag = lists:all(
+             fun is_ascii_char/1,
+             lists:seq(32, 126)
+            ),
+    ?assert(Flag),
+    ?assert(is_ascii_char("A")),
+    ?assertNot(is_ascii_char(222)),
+    ?assertNot(is_ascii_char(a)).
+
+%% Test for maybe_string
+maybe_string_test() ->
+    ?assert(maybe_string("")),
+    ?assert(maybe_string("Hello")),
+    ?assert(maybe_string([32, 33, 34])),
+    ?assertNot(maybe_string(42)),
+    ?assertNot(maybe_string([0,1])),
+    ?assertNot(maybe_string(atom)),
+    ?assertNot(maybe_string(42.0)).
