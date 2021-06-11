@@ -3,6 +3,17 @@
 -include_lib("results/include/results.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+value_test() ->
+    ?assertEqual("a", coers:value(results:new("a"))).
+
+error_test() ->
+    ?assertEqual(oops, coers:error(results:new_error(oops))).
+
+has_error_test() ->
+    ?assert(coers:has_error(results:new_error(oops))),
+    %% LFE-friendly alias
+    ?assert(coers:'error?'(results:new_error(oops))).
+
 to_string_test() ->
     ?assertEqual("coers", coers:value(coers:to_string("coers"))),
     ?assertEqual("coers", coers:value(coers:to_string(coers))),
