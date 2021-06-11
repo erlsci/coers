@@ -72,7 +72,7 @@ to_string(Term) when is_integer(Term) ->
 to_string(Term) when is_tuple(Term) ->
     results:new(tuple_to_list(Term));
 to_string(Term) ->
-    case maybe_string(Term) of
+    case io_lib:printable_unicode_list(Term) of
         true -> results:new(Term);
         false ->
             List = io_lib:format("~p", [Term]),
@@ -319,42 +319,3 @@ format_error_msg(Err, Msg, FmtArgs) ->
 
 '->rational'(R, D) ->
     to_rational(R, D).
-
-%% Private functions
-
-%% @doc determine if an integer is a potential Ascii Char
--spec is_ascii_char(integer()) -> boolean().
-is_ascii_char(X) when is_integer(X) ->
-    (X >= 32) and (X < 127);
-is_ascii_char([H]) ->
-    is_ascii_char(H);
-is_ascii_char(_) ->
-    false.
-
-%% @doc check if a list is maybe a string
--spec maybe_string(list()) -> boolean().
-maybe_string(List) when is_list(List) ->
-    lists:all(fun is_ascii_char/1, List);
-maybe_string(_) -> false.
-
--include_lib("eunit/include/eunit.hrl").
-
-is_ascii_char_test() ->
-    Flag = lists:all(
-             fun is_ascii_char/1,
-             lists:seq(32, 126)
-            ),
-    ?assert(Flag),
-    ?assert(is_ascii_char("A")),
-    ?assertNot(is_ascii_char(222)),
-    ?assertNot(is_ascii_char(a)).
-
-%% Test for maybe_string
-maybe_string_test() ->
-    ?assert(maybe_string("")),
-    ?assert(maybe_string("Hello")),
-    ?assert(maybe_string([32, 33, 34])),
-    ?assertNot(maybe_string(42)),
-    ?assertNot(maybe_string([0,1])),
-    ?assertNot(maybe_string(atom)),
-    ?assertNot(maybe_string(42.0)).
