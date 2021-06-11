@@ -2,9 +2,10 @@ name: ci/cd
 
 on:
   push:
-    branches: [ main, release/*, tag/*]
+    branches: [ main, 'release/**' ]
+    tags: [ '**' ]
   pull_request:
-    branches: [ main, release/*, tag/*]
+    branches: [ '**' ]
 
 jobs:
 
