@@ -45,6 +45,8 @@
 -define(RATIO_REGEX, "^(?<SIGN>[+-])?(?<NUM>\\d+)/(?<DEN>\\d+)$").
 -define(NUM_REGEX, "^[+-]?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)$").
 
+%% Convenience wrappers for functions of the same name in the 'results' library.
+
 -spec value(result()) -> term().
 value(Result) ->
     results:value(Result).
@@ -57,7 +59,7 @@ error(Result) ->
 has_error(Result) ->
     results:has_error(Result).
 
-%% @doc try to coerce term into string
+%% @doc Coerce term to string if possible
 -spec to_string((binary() | [any()])) -> result().
 to_string(Term) when is_bitstring(Term) ->
     List = binary_to_list(Term),
@@ -87,7 +89,7 @@ to_string(Term, Default) when is_record(Default, result) ->
 to_string(Term, Default) ->
     results:attempt(to_string(Term), to_string(Default)).
 
-%% @doc an ugly and magic coercion from string to term()
+%% @doc Coerce from string to Erlang term() if possible
 -spec to_term(string()) -> result().
 to_term(String) ->
     {ok, Regexp} = re:compile("^.+(\\,|\\;|\\.)$"),
@@ -105,7 +107,6 @@ to_term(String) ->
                     {value, Val, []} = erl_eval:exprs(Exprs, []),
                     results:new(Val);
                 {error, {_, erl_parse, _}} ->
-                    %% TODO extract the error message and add to new_error
                     format_error_msg(erl_parse, "Could not convert string ~p", [String]);
                 {error, {Err, A, B}} ->
                     %% TODO extract the error message and add to new_error
@@ -116,14 +117,14 @@ to_term(String) ->
             format_error_msg(Err, "Could not convert string ~p, ~p, ~p", [String, A, B])
     end.
 
-%% @doc try coercion or define a default value the suceeded flag is preserved
+%% @doc Try coercion; if an error results, use a default result
 -spec to_term(string(), term()) -> result().
 to_term(Term, Default) when is_record(Default, result) ->
     results:attempt(to_term(Term), Default);
 to_term(Term, Default) ->
     results:attempt(to_term(Term), to_term(Default)).
 
-%% @doc numeric alignement of a string (float or int)
+%% @doc Get the type of a string that may represent an Erlang term
 -spec get_type(string()) -> atom().
 get_type(String) ->
     {ok, RatioRegex} = re:compile(?RATIO_REGEX),
@@ -142,7 +143,7 @@ get_type_int_float(String) ->
         _ -> any
     end.
 
-%% @doc try to coerce a term to an integer
+%% @doc Try to coerce a term to an integer
 -spec to_int(term()) -> result().
 to_int(Obj) when is_integer(Obj) -> results:new(Obj);
 to_int(Obj) when is_bitstring(Obj) -> to_int(binary_to_list(Obj));
@@ -163,8 +164,7 @@ to_int(Obj) when is_atom(Obj)     ->
     end;
 to_int(Obj) -> format_error_msg(error, "Could not convert ~p to int", [Obj]).
 
-%% @doc try coercion or define a default value
-%%      the suceeded flag is preserved
+%% @doc Try coercion or use a default value
 -spec to_int(term(), term()) -> result().
 to_int(Term, Default) when is_record(Default, result) ->
     results:attempt(to_int(Term), Default);
@@ -194,7 +194,7 @@ to_float(Obj) when is_atom(Obj) ->
 to_float(Obj) ->
     format_error_msg(error, "Could not convert ~p to float", [Obj]).
 
-%% @doc try coercion or define a default value the suceeded flag is preserved
+%% @doc try coercion or use a default
 -spec to_float(term(), term()) -> result().
 to_float(Term, Default) when is_record(Default, result) ->
     results:attempt(to_float(Term), Default);
@@ -213,7 +213,7 @@ to_atom(Obj) ->
     Pred = to_string(Obj),
     to_atom(results:value(Pred)).
 
-%% @doc try coercion or define a default value the suceeded flag is preserved
+%% @doc try coercion or use a default
 -spec to_atom(term(), term()) -> result().
 to_atom(Term, Default) when is_record(Default, result) ->
     results:attempt(to_atom(Term), Default);
@@ -242,7 +242,7 @@ to_bool(1)   -> results:new(true);
 to_bool(1.0) -> results:new(true);
 to_bool(_)   -> results:new(true).
 
-%% @doc try coercion or define a default value the suceeded flag is preserved
+%% @doc try coercion or use a default value
 -spec to_bool(term(), term()) -> result().
 to_bool(Term, Default) ->
     results:attempt(to_bool(Term), Default).
