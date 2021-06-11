@@ -36,7 +36,7 @@ Each coercion is wrapped into a [special record](https://github.com/erlsci/resul
 }).
 ```
 
-If a coercion fail, the `value` field is undefined and the `error` field is populated with
+If a coercion fails, the `value` field is undefined and the `error` field is populated with
 an appropriate error. If the coersion succeed, the `value` field becomes the coerced data and the 
 `error` field is undefined.
 

@@ -22,7 +22,21 @@
          to_bool/1,
          to_bool/2,
          to_rational/1,
-         to_rational/2
+         to_rational/2,
+         %% LFE-friendly aliases
+         'error?'/1,
+         '->string'/1,
+         '->string'/2,
+         '->int'/1,
+         '->int'/2,
+         '->float'/1,
+         '->float'/2,
+         '->atom'/1,
+         '->atom'/2,
+         '->bool'/1,
+         '->bool'/2,
+         '->rational'/1,
+         '->rational'/2
         ]).
 
 -include_lib("results/include/results.hrl").
@@ -62,6 +76,15 @@ maybe_string(_) -> false.
 to_string(Term) when is_bitstring(Term) ->
     List = binary_to_list(Term),
     to_string(List);
+to_string(Term) when is_atom(Term) ->
+    results:new(atom_to_list(Term));
+to_string(Term) when is_float(Term) ->
+    [Float|_] = io_lib:format("~p", [Term]),
+    results:new(Float);
+to_string(Term) when is_integer(Term) ->
+    results:new(integer_to_list(Term));
+to_string(Term) when is_tuple(Term) ->
+    results:new(tuple_to_list(Term));
 to_string(Term) ->
     case maybe_string(Term) of
         true -> results:new(Term);
@@ -258,3 +281,43 @@ to_rational(Term, Default) ->
 
 format_error_msg(Err, Msg, FmtArgs) ->
     results:new_error({Err, lists:flatten(io_lib:format(Msg, FmtArgs))}).
+
+%% LFE-friendly aliases:
+'error?'(R) ->
+    has_error(R).
+
+'->string'(R) ->
+    to_string(R).
+
+'->string'(R, D) ->
+    to_string(R, D).
+
+'->int'(R) ->
+    to_int(R).
+
+'->int'(R, D) ->
+    to_int(R, D).
+
+'->float'(R) ->
+    to_float(R).
+
+'->float'(R, D) ->
+    to_float(R, D).
+
+'->atom'(R) ->
+    to_atom(R).
+
+'->atom'(R, D) ->
+    to_atom(R, D).
+
+'->bool'(R) ->
+    to_bool(R).
+
+'->bool'(R, D) ->
+    to_bool(R, D).
+
+'->rational'(R) ->
+    to_rational(R).
+
+'->rational'(R, D) ->
+    to_rational(R, D).

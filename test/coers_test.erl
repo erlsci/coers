@@ -32,7 +32,9 @@ to_string_test() ->
     ?assertEqual("", coers:value(coers:to_string([]))),
     ?assertEqual("42", coers:value(coers:to_string(42))),
     ?assertEqual("coers", coers:value(coers:to_string(<<"coers">>))),
-    ?assertEqual("42.0", coers:value(coers:to_string(42.0))).
+    ?assertEqual("42.0", string:substr(coers:value(coers:to_string(42.0)), 1, 4)),
+    %% LFE-friendly alias
+    ?assertEqual("42.0", coers:value(coers:'->string'(42.0))).
 
 %% Test suits for magic coersion
 of_string_atomic_test() ->
