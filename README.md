@@ -82,8 +82,6 @@ Example usgage in LFE when reading data from the Extempore music system:
 ``` lisp
 (defun ->lfe (bitstr)
   (case bitstr
-   (#"#t" 'true)
-   (#"#f" 'false)
    (#"NIL" 'nil)
    (_ (cond ((?= `#(result ,val undefined) (coers:->int bitstr))
              val)

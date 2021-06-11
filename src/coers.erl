@@ -226,9 +226,12 @@ to_bool(Obj) when is_atom(Obj) ->
     results:new(not (Obj == false));
 to_bool(Obj) when is_list(Obj) ->
     case string:to_lower(Obj) of
-        "true"   -> results:new(true);
-        "false"  -> results:new(false);
-        _        -> results:new(true)
+        "true"  -> results:new(true);
+        "false" -> results:new(false);
+        %% LFE-friendly values (also Common Lisp and Scheme)
+        "#t"    -> results:new(true);
+        "#f"    -> results:new(false);
+        _       -> results:new(true)
     end;
 to_bool(X) when is_bitstring(X) ->
     Pred = to_string(X),

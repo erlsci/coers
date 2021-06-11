@@ -116,6 +116,9 @@ to_bool_test() ->
     ?assertNot(coers:value(coers:to_bool(<<"false">>))),
     ?assertNot(coers:value(coers:to_bool(0))),
     ?assertNot(coers:value(coers:to_bool(0.0))),
+    %% LFE-friendly values
+    ?assert(coers:value(coers:to_bool("#t"))),
+    ?assertNot(coers:value(coers:to_bool("#f"))),
     %% LFE-friendly alias
     ?assert(coers:value(coers:'->bool'("true"))).
 
